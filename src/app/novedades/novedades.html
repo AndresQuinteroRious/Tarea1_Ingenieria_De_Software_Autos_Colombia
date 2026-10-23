@@ -1,0 +1,150 @@
+<section class="management" aria-labelledby="news-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">GESTIÓN DE NOVEDADES</span>
+      <h1 id="news-title">Novedades</h1>
+      <p>Administra las novedades de Autos Colombia.</p>
+    </div>
+    <button class="primary" type="button" (click)="newNews()" [disabled]="busy()">
+      Nueva novedad
+    </button>
+  </header>
+  @if (success()) {
+    <p class="notice success" role="status">{{ success() }}</p>
+  }
+  @if (actionError()) {
+    <p class="notice error" role="alert">{{ actionError() }}</p>
+  }
+  @if (showForm()) {
+    <section class="panel" aria-labelledby="form-title">
+      <h2 id="form-title">{{ editing() === null ? 'Registrar novedad' : 'Editar novedad' }}</h2>
+      <p class="hint">
+        Todos los campos son obligatorios.
+      </p>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <fieldset [disabled]="busy()">
+          <legend class="sr-only">Datos de la novedad</legend>
+          <div class="form-grid">
+            @for (field of fields; track field.key) {
+              <div class="field">
+                <label [for]="field.key">{{ field.label }}</label
+                ><input
+                  type="text"
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  required
+                  [attr.aria-invalid]="!!fieldError(field.key)"
+                  [attr.aria-describedby]="field.key + '-error'"
+                /><span class="field-error" [id]="field.key + '-error'">{{
+                  fieldError(field.key)
+                }}</span>
+              </div>
+            }
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary">
+              {{ saving() ? 'Guardando…' : 'Guardar novedad' }}</button
+            ><button type="button" (click)="cancel()">Cancelar</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  }
+  @if (pendingDelete(); as news) {
+    <section
+      class="panel confirmation"
+      role="alertdialog"
+      aria-labelledby="delete-title"
+      aria-describedby="delete-description"
+    >
+      <h2 id="delete-title">Eliminar novedad</h2>
+      <p id="delete-description">
+        ¿Quieres eliminar la novedad (id {{ news.id }})? Esta acción no se puede
+        deshacer.
+      </p>
+      <div class="actions">
+        <button type="button" (click)="cancel()" [disabled]="busy()">Cancelar eliminación</button
+        ><button type="button" class="danger" (click)="remove()" [disabled]="busy()">
+          {{ saving() ? 'Eliminando…' : 'Confirmar eliminación' }}
+        </button>
+      </div>
+    </section>
+  }
+  <section class="panel list" aria-label="Listado de novedades" [attr.aria-busy]="loading()">
+    <div class="list-heading">
+      <h2>
+        Novedades registradas <span class="count">{{ total() }}</span>
+      </h2>
+      <button type="button" (click)="load()" [disabled]="busy()">Actualizar listado</button>
+    </div>
+    @if (loading()) {
+      <p class="empty" role="status">Cargando novedades…</p>
+    } @else if (listError()) {
+      <p class="notice error" role="alert">{{ listError() }}</p>
+    } @else if (!items().length) {
+      <div class="empty">
+        <h3>Aún no hay novedades</h3>
+        <p>Registra una novedad para comenzar.</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">
+            Novedades registradas
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Descripción</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (news of items(); track news.id) {
+              <tr>
+                <th scope="row">{{ news.descripcion }}</th>
+                <td>{{ news.fecha }}</td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    (click)="edit(news)"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'Editar novedad ' + news.id"
+                  >
+                    Editar</button
+                  ><button
+                    type="button"
+                    class="delete-link"
+                    (click)="confirmDelete(news)"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'Eliminar novedad ' + news.id"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <nav class="pagination" aria-label="Paginación de novedades">
+      <span>Página {{ page() }} de {{ pages() }} · {{ limit }} por página</span>
+      <div class="actions">
+        <button
+          type="button"
+          (click)="load(offset() - limit)"
+          [disabled]="busy() || offset() === 0"
+        >
+          Anterior</button
+        ><button
+          type="button"
+          (click)="load(offset() + limit)"
+          [disabled]="busy() || offset() + limit >= total()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </nav>
+  </section>
+</section>
